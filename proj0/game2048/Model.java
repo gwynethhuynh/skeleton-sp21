@@ -110,6 +110,7 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
+
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
@@ -172,7 +173,31 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if (emptySpaceExists(b)) {
+            return true;
+        }
+        int previousVal = 0;
+        for (int col = 0; col < b.size(); col++) {
+            previousVal = 0;
+            for (int row = 0; row < b.size(); row++) {
+                Tile current = b.tile(col, row);
+                int currentVal = current.value();
+                if (current == null) return true;
+                if (currentVal == previousVal) return true;
+                previousVal = currentVal;
+            }
+        }
+        previousVal = 0;
+        for (int row = 0; row < b.size(); row++) {
+            previousVal = 0;
+            for (int col = 0; col < b.size(); col++) {
+                Tile current = b.tile(col, row);
+                int currentVal = current.value();
+                if (current == null) return true;
+                if (currentVal == previousVal) return true;
+                previousVal = currentVal;
+            }
+        }
         return false;
     }
 
