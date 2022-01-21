@@ -132,6 +132,12 @@ public class Model extends Observable {
                         current.merge(col, row + distance, above);
                         score += board.tile(col, row + distance).value();
                         above = null;
+                        continue;
+                    }
+                    else if (distance > 0) {
+                        board.move(col, row + distance, current);
+                        changed = true;
+                        above = current;
                     }
                 }
                 else if (distance > 0) {
@@ -139,6 +145,7 @@ public class Model extends Observable {
                     changed = true;
                     above = current;
                 }
+                above = current;
             }
         }
         board.setViewingPerspective(Side.NORTH);
