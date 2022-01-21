@@ -119,31 +119,22 @@ public class Model extends Observable {
                 if (current == null) {
                     distance += 1;
                     continue;
-                }
-                if (row == board.size() - 1) {
-                    above = current;
-                    continue;
-                }
-                if (above != null) {
+                } else if (above != null) {
                     if (above.value() == current.value()) {
                         distance += 1;
                         board.move(col, row + distance, current);
                         changed = true;
                         current.merge(col, row + distance, above);
                         score += board.tile(col, row + distance).value();
-                        above = null;
-                        continue;
+                        current = null;
                     }
                     else if (distance > 0) {
                         board.move(col, row + distance, current);
                         changed = true;
-                        above = current;
                     }
-                }
-                else if (distance > 0) {
+                } else if (distance > 0) {
                     board.move(col, row + distance, current);
                     changed = true;
-                    above = current;
                 }
                 above = current;
             }
