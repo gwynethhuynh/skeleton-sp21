@@ -120,14 +120,16 @@ public class Model extends Observable {
                     distance += 1;
                     continue;
                 }
+
                 if (above != null && above.value() == current.value()) {
+                    // merge
                     distance += 1;
                     board.move(col, row + distance, current);
                     changed = true;
-                    current.merge(col, row + distance, above);
                     score += board.tile(col, row + distance).value();
                     current = null;
                 } else if (distance > 0) {
+                    // no merge, move
                     board.move(col, row + distance, current);
                     changed = true;
                 }
