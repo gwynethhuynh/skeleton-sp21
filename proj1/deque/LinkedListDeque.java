@@ -113,6 +113,9 @@ class LinkedListDeque<T> {
 
     //Gets the item at the given index. If no such item exists, returns null.
     public T get(int index) {
+        if (index > size - 1) {
+            return null;
+        }
         TNode current = sentinel.next; // index 0
         for (int i = 0; i < index; i++) {
             current = current.next;
