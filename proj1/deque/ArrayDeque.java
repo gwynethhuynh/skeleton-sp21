@@ -63,7 +63,9 @@ class ArrayDeque<T> {
 
     //Prints the items in the deque from first to last, separated by a space.
     // 2 4 6 8
+    //Fix index offset.
     public void printDeque() {
+        int start = Math.floorMod(nextStart + 1, capacity);
         for (int i = 0; i < size; i++) {
             if (i == size - 1) {
                 System.out.print(items[i]);
