@@ -7,7 +7,7 @@ public class ArrayDequeTest {
 
     @Test
     public void AddIsEmptyTest() {
-        LinkedListDeque<String> ad1 = new LinkedListDeque<String>();
+        ArrayDeque<String> ad1 = new ArrayDeque<String>();
 
         assertTrue("A newly initialized ADeque should be empty", ad1.isEmpty());
         ad1.addFirst("front");
