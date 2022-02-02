@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-class LinkedListDeque<T> {
+class LinkedListDeque<T> implements Deque<T> {
 
     private TNode sentinel;
     private T item;
@@ -44,6 +44,7 @@ class LinkedListDeque<T> {
 
 
     //Adds an item of type T to the front of the deque.
+    @Override
     public void addFirst (T item) {
         TNode first = new TNode(item, sentinel.next, sentinel);
         sentinel.next.previous = first;
@@ -53,6 +54,7 @@ class LinkedListDeque<T> {
     }
 
     //Adds an item of type T to the back of the deque.
+    @Override
     public void addLast(T item) {
         TNode last = new TNode(item, sentinel, sentinel.previous);
         sentinel.previous.next = last;
@@ -61,18 +63,16 @@ class LinkedListDeque<T> {
 
     }
 
-    //Returns true if the deque is empty, false otherwise.
-    public boolean isEmpty() {
-        return size == 0;
-    }
 
     //Returns the number of items in the deque.
+    @Override
     public int size() {
         return size;
     }
 
     //Prints the items in the deque from first to last, separated by a space.
     // 2 4 6 8
+    @Override
     public void printDeque() {
         TNode current = sentinel.next;
         for (int i = 0; i < size; i++) {
@@ -86,6 +86,7 @@ class LinkedListDeque<T> {
     }
 
     //Removes and returns the item at the front of the deque. If no such item exists, returns null.
+    @Override
     public T removeFirst() {
         if (isEmpty()) {
             return null;
@@ -99,6 +100,7 @@ class LinkedListDeque<T> {
     }
 
     //Removes and returns the item at the back of the deque. If no such item exists, returns null.
+    @Override
     public T removeLast() {
         if (isEmpty()) {
             return null;
@@ -112,6 +114,7 @@ class LinkedListDeque<T> {
     }
 
     //Gets the item at the given index. If no such item exists, returns null.
+    @Override
     public T get(int index) {
         if (index > size - 1) {
             return null;

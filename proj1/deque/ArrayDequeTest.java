@@ -2,6 +2,7 @@ package deque;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
+import edu.princeton.cs.algs4.Stopwatch;
 
 public class ArrayDequeTest {
 
@@ -100,7 +101,8 @@ public class ArrayDequeTest {
 
     }
 
-    public void bigLLDequeTest() {
+    @Test
+    public void bigADequeTest() {
 
         ArrayDeque<Integer> ad1 = new ArrayDeque<Integer>();
         for (int i = 0; i < 1000000; i++) {
@@ -115,6 +117,60 @@ public class ArrayDequeTest {
             assertEquals("Should have the same value", i, (double) ad1.removeLast(), 0.0);
         }
 
+    }
+
+    @Test
+    public void bigADequeTestAddFirst() {
+
+        ArrayDeque<Integer> ad1 = new ArrayDeque<Integer>();
+        for (int i = 0; i < 1000000; i++) {
+            ad1.addFirst(i);
+        }
+
+        for (double i = 0; i < 500000; i++) {
+            assertEquals("Should have the same value", i, (double) ad1.removeLast(), 0.0);
+        }
+
+        for (double i = 999999; i > 500000; i--) {
+            assertEquals("Should have the same value", i, (double) ad1.removeFirst(), 0.0);
+        }
+
+    }
+    //prints the Timing Table
+    private static void printTimingTable(AList<Integer> Ns, AList<Double> times, AList<Integer> opCounts) {
+        System.out.printf("%12s %12s %12s %12s\n", "N", "time (s)", "# ops", "microsec/op");
+        System.out.printf("------------------------------------------------------------\n");
+        for (int i = 0; i < Ns.size(); i += 1) {
+            int N = Ns.get(i);
+            double time = times.get(i);
+            int opCount = opCounts.get(i);
+            double timePerOp = time / opCount * 1e6;
+            System.out.printf("%12d %12.2f %12d %12.2f\n", N, time, opCount, timePerOp);
+        }
+    }
+
+    public static void main(String[] args) {
+        timeGetLast();
+    }
+    //times how long it takes to add and remove
+    public static void timeGetLast() {
+        AList<Integer> Ns = new AList<>();
+        AList<Double> times = new AList<>();
+        AList<Integer> ops = new AList<>();
+        int M = 1000;
+
+        for (int N = 1000; N < 128001; N = N * 2) {
+            ArrayDeque<Integer> a1 = new ArrayDeque<>();
+            Stopwatch watch = new Stopwatch();
+            for (int i = 0; i < N; i++) {
+                a1.addFirst(1);
+            }
+            double ms = watch.elapsedTime();
+            Ns.addLast(N);
+            times.addLast(ms);
+            ops.addLast(M);
+        }
+        printTimingTable(Ns, times, ops);
     }
 
 }

@@ -2,11 +2,11 @@ package deque;
 
 import java.util.Iterator;
 
-class ArrayDeque<T> {
+public class ArrayDeque<T> implements Deque<T> {
 
-    public int size;
-    public int nextStart;
-    public int nextEnd;
+    private int size;
+    private int nextStart;
+    private int nextEnd;
     private T[] items;
     private int capacity;
 
@@ -26,11 +26,16 @@ class ArrayDeque<T> {
         int start = Math.floorMod(nextStart + 1, capacity);
         int end = Math.floorMod(nextEnd - 1, capacity);
         System.arraycopy(items, start , a, 0, size - start);
-        System.arraycopy(items, 0, a, size - start, end + 1);
+        System.arraycopy(items, 0, a, size - start, start);
+        nextEnd = capacity;
         capacity = capacity * 2;
+        nextStart = Math.floorMod(- 1, capacity);
+        items = a;
+
     }
 
     //Adds an item of type T to the front of the deque.
+    @Override
     public void addFirst (T item) {
         //Resizes array deque.
         if (size == capacity) {
@@ -42,40 +47,38 @@ class ArrayDeque<T> {
     }
 
     //Adds an item of type T to the back of the deque.
+    @Override
     public void addLast(T item) {
         if (size == capacity) {
             resize();
         }
         items[nextEnd] = item;
-        nextStart = Math.floorMod(nextEnd + 1, capacity); //floorMod
+        nextEnd = Math.floorMod(nextEnd + 1, capacity); //floorMod
         size += 1;
     }
 
-    //Returns true if the deque is empty, false otherwise.
-    public boolean isEmpty() {
-        return size == 0;
-    }
-
     //Returns the number of items in the deque.
+    @Override
     public int size() {
         return size;
     }
 
     //Prints the items in the deque from first to last, separated by a space.
     // 2 4 6 8
-    //Fix index offset.
+    @Override
     public void printDeque() {
-        int start = Math.floorMod(nextStart + 1, capacity);
         for (int i = 0; i < size; i++) {
+            int index = Math.floorMod(nextStart + i + 1, capacity);
             if (i == size - 1) {
-                System.out.print(items[i]);
+                System.out.print(items[index]);
             } else {
-                System.out.print(items[i] + " ");
+                System.out.print(items[index] + " ");
             }
         }
     }
 
     //Removes and returns the item at the front of the deque. If no such item exists, returns null.
+    @Override
     public T removeFirst() {
         if (isEmpty()) {
             return null;
@@ -87,6 +90,7 @@ class ArrayDeque<T> {
     }
 
     //Removes and returns the item at the back of the deque. If no such item exists, returns null.
+    @Override
     public T removeLast() {
         if (isEmpty()) {
             return null;
@@ -98,6 +102,7 @@ class ArrayDeque<T> {
     }
 
     //Gets the item at the given index. If no such item exists, returns null.
+    @Override
     public T get(int index) {
         if (index > size - 1) {
             return null;
@@ -117,5 +122,13 @@ class ArrayDeque<T> {
     public boolean equals(Object o) {
         System.out.println("NOT IMPLEMENTED");
         return false;
+    }
+
+    public static void main(String[] args) {
+        ArrayDeque<Integer> ad1 = new ArrayDeque<>();
+        for (int i = 0; i < 100; i++) {
+            ad1.addFirst(i);
+        }
+        ad1.printDeque();
     }
 }
