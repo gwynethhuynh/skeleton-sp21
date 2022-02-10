@@ -2,7 +2,11 @@ package gitlet;
 
 // TODO: any imports you need here
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
+
+import static gitlet.Utils.join;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -10,7 +14,7 @@ import java.util.Date; // TODO: You'll likely use this in this class
  *
  *  @author TODO
  */
-public class Commit {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -20,7 +24,51 @@ public class Commit {
      */
 
     /** The message of this Commit. */
-    private String message;
+    private final String message;
+    private final String timestamp;
+    // something to keep track files this commit is tracking
+    private final String parent;
+    static final File COMMITS_DIR = Utils.join(".gitlet/.objects", "commits");
 
     /* TODO: fill in the rest of this class. */
+
+    public Commit(String message, String parent) {
+        this.message = message;
+        this.parent = parent;
+        //if (this.parent == null) {
+            //this.timestamp = "00:00:00 UTC, Thursday, 1 January 1970";
+        //} else {
+
+        //}
+
+    }
+
+    //public String getCommitID() {return this.commitID; }
+
+    public String getMessage() {
+        return this.message;
+    }
+
+    //public String getTimestamp() {
+        //return this.timestamp;
+    //}
+
+    public String getParent() {
+        return this.parent;
+    }
+
+    public void saveCommit(){
+        //Check HEAD
+        String commitID = Utils.sha1(Utils.serialize(this));
+        File HEAD = join(".gitlet", "HEAD");
+        File Branch_head = join(Utils.readContentsAsString(HEAD),)
+        Utils.writeContents(, commitID);
+        File COMMITS_DIR = join(".gitlet/objects", "commits");
+        if (!COMMITS_DIR.exists()) {
+            COMMITS_DIR.mkdir();
+        }
+        File commit = join(COMMITS_DIR, commitID);
+        Utils.writeObject(commit, Utils.serialize(this));
+        //Branch.updateBranch();
+    }
 }
