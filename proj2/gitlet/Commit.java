@@ -25,14 +25,19 @@ public class Commit implements Serializable {
 
     /** The message of this Commit. */
     private final String message;
-    private final String timestamp;
+    //private final String timestamp;
     // something to keep track files this commit is tracking
     private final String parent;
-    static final File COMMITS_DIR = Utils.join(".gitlet/.objects", "commits");
+    private String commitID;
+    static final File COMMITS_DIR = Utils.join(".gitlet/objects", "commits");
+
 
     /* TODO: fill in the rest of this class. */
 
     public Commit(String message, String parent) {
+        if (!COMMITS_DIR.exists()) {
+            COMMITS_DIR.mkdir();
+        }
         this.message = message;
         this.parent = parent;
         //if (this.parent == null) {
@@ -40,10 +45,11 @@ public class Commit implements Serializable {
         //} else {
 
         //}
+        this.commitID = "";
 
     }
 
-    //public String getCommitID() {return this.commitID; }
+    public String getCommitID() {return this.commitID; }
 
     public String getMessage() {
         return this.message;
@@ -58,17 +64,9 @@ public class Commit implements Serializable {
     }
 
     public void saveCommit(){
-        //Check HEAD
-        String commitID = Utils.sha1(Utils.serialize(this));
-        File HEAD = join(".gitlet", "HEAD");
-        File Branch_head = join(Utils.readContentsAsString(HEAD),)
-        Utils.writeContents(, commitID);
-        File COMMITS_DIR = join(".gitlet/objects", "commits");
-        if (!COMMITS_DIR.exists()) {
-            COMMITS_DIR.mkdir();
-        }
+        //save Commit Object
+        this.commitID = Utils.sha1(Utils.serialize(this));
         File commit = join(COMMITS_DIR, commitID);
-        Utils.writeObject(commit, Utils.serialize(this));
-        //Branch.updateBranch();
+        Utils.writeObject(commit, this);
     }
 }

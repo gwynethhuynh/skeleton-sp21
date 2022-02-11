@@ -58,16 +58,8 @@ public class Repository {
         Branch master = new Branch(HEAD); //create a new master branch
         Commit initial = new Commit("initial commit", null);
         initial.saveCommit();
+        master.updateBranch(initial.getCommitID());
 
-
-        // master is a file that contains SHA-1 identifer of head commit.
-        String commitID = Utils.sha1(Utils.serialize(initial));
-        // Utils.writeContents(master, commitID);
-        //File HEAD = join(GITLET_DIR, "HEAD");
-        //Utils.writeContents(HEAD,".gitlet/refs/" + HEAD);
-
-            //create a refs directory that contains empty heads directory
-            //create a HEAD file that contains path (refs/heads/master)
 
     }
 
