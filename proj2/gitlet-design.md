@@ -191,12 +191,21 @@ identifier of the current commit object.
 6. `public void saveCommit()` 
 
 
-7. `public void readCommit()`
+7. `public void getCommit()`
+
+8. `public void addCommit()`
 
 
-### Class 2
+### My Git
 
 #### Fields
+
+myGitTree myGitTree (getcommit, dfsCommit, addCommit)
+treemap myHeads
+treemap myBlobs
+
+*logs --> go to HEAD and use previous pointers and print out 
+
 
 1. Field 1
 2. Field 2

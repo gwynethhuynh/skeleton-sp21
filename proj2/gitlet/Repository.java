@@ -1,6 +1,14 @@
 package gitlet;
 
+import jdk.jshell.execution.Util;
+
 import java.io.File;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import static gitlet.Utils.*;
 
 // TODO: any imports you need here
@@ -22,12 +30,17 @@ public class Repository {
      * variable is used. We've provided two examples for you.
      */
 
-    public static String HEAD;
+
 
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
+    //head
+    public static File HEAD = Utils.join(GITLET_DIR, "HEAD");
+
+    public static File BRANCHES_DIR = Utils.join(GITLET_DIR, "branches");
+
 
     /* TODO: fill in the rest of this class. */
 
@@ -45,30 +58,97 @@ public class Repository {
     public static void setUpPersistence() {
         if (!GITLET_DIR.exists()) {
             GITLET_DIR.mkdir();
-            File REFS_DIR = join(GITLET_DIR, "refs");
-            REFS_DIR.mkdir();
             File OBJECTS_DIR = join(GITLET_DIR, "objects");
             OBJECTS_DIR.mkdir();
 
         }
     }
     public static void init(){
+        if (GITLET_DIR.exists()) {
+            throw new FileSystemAlreadyExistsException("A Gitlet version-control system already exists in the current directory.");
+        }
         setUpPersistence();
-        HEAD = "master";
-        Branch master = new Branch(HEAD); //create a new master branch
+        Utils.writeContents(HEAD, "branches/master");
+        //Branch master = new Branch(HEAD); //create a new master branch
         Commit initial = new Commit("initial commit", null);
         initial.saveCommit();
-        master.updateBranch(initial.getCommitID());
+        String commitID = initial.getCommitID();
+        createBranch("master", commitID);
 
 
     }
+    /**
+    public static void add(String file_name) {
+        //check if file is the same in commit (do not add it)
 
-    public void commit() {
+
+        //check if file exists in the cwd
+        File plain = join(CWD, file_name);
+        if (!plain.exists()) {
+            return;
+        }
+        //create blobID
+        String blobID = Utils.sha1(Utils.serialize(plain));
+        Utils.readContentsAsString(HEAD);
+
+        /**
+        File BLOBS_DIR = Utils.join(".gitlet/objects", "blobs");
+        if (!BLOBS_DIR.exists()) {
+            BLOBS_DIR.mkdir();
+        } */
+    /**
+        // File HEAD = //head commit
+        //check if file is already staged
+        Map<String, LinkedList<String>> blobs = new HashMap<>(); //How do I make this HashMap persist?
+        //Store in file? --> but it will be O logN relative to N number of files because I will have to read
+        //entire HashMap object to check the files there.
+        LinkedList<String> file_blobs = blobs.get(file_name);
+        if (file_blobs.getLast() == blobID) {
+            return;
+        }
+        File blob = Utils.join(BLOBS_DIR, blobID);
+
+        //how do we know what the parent is?
+        Blob blob = new Blob(null, plain);
+        blob.saveBlob();
+
+    }
+    */
+
+    private static void checkBlob() {
+        //check if staged
+        //check if in current commit already
+
+    }
+
+    private static void createBlobMap() {
+        //need blobMap to persist --> how should I do this? Hash Table?
+
+    }
+
+
+    public static void commit() {
         //Read from my computer the head commit object and the staging area
         //Clone the HEAD commit
         //Modify its message and timestamp according to the user input
         //Use the staging area in order to modify the files tracked by the new commit
 
         //Write back any new objects made or any objects modified
+    }
+
+    public static String getHEADCommitID() {
+        return "";
+    }
+
+    public static void createBranch(String branch_name, String commitID) {
+        if(!BRANCHES_DIR.exists()) {
+            BRANCHES_DIR.mkdir();
+        }
+        File branch = Utils.join(BRANCHES_DIR, branch_name);
+        Utils.writeContents(branch, commitID);
+    }
+
+    public static void updateBranch(String commitID) {
+
     }
 }

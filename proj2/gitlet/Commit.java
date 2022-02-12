@@ -5,6 +5,7 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.HashMap;
 
 import static gitlet.Utils.join;
 
@@ -26,7 +27,7 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private final String message;
     //private final String timestamp;
-    // something to keep track files this commit is tracking
+    //private final HashMap<String, String>; // The key is the text file name and the value the blob SHA-1 ID.
     private final String parent;
     private String commitID;
     static final File COMMITS_DIR = Utils.join(".gitlet/objects", "commits");
@@ -66,7 +67,9 @@ public class Commit implements Serializable {
     public void saveCommit(){
         //save Commit Object
         this.commitID = Utils.sha1(Utils.serialize(this));
-        File commit = join(COMMITS_DIR, commitID);
+        File COMMIT_FOLDER = join(COMMITS_DIR, commitID);
+        File commit = join(COMMIT_FOLDER, commitID);
+        COMMIT_FOLDER.mkdir();
         Utils.writeObject(commit, this);
     }
 }
