@@ -41,6 +41,8 @@ public class Repository {
 
     public static File BRANCHES_DIR = Utils.join(GITLET_DIR, "branches");
 
+    public static File STAGING_DIR = Utils.join(GITLET_DIR, "Staging");
+
 
     /* TODO: fill in the rest of this class. */
 
@@ -60,6 +62,7 @@ public class Repository {
             GITLET_DIR.mkdir();
             File OBJECTS_DIR = join(GITLET_DIR, "objects");
             OBJECTS_DIR.mkdir();
+            STAGING_DIR.mkdir();
 
         }
     }
@@ -77,11 +80,8 @@ public class Repository {
 
 
     }
-    /**
+
     public static void add(String file_name) {
-        //check if file is the same in commit (do not add it)
-
-
         //check if file exists in the cwd
         File plain = join(CWD, file_name);
         if (!plain.exists()) {
@@ -89,31 +89,38 @@ public class Repository {
         }
         //create blobID
         String blobID = Utils.sha1(Utils.serialize(plain));
-        Utils.readContentsAsString(HEAD);
 
-        /**
-        File BLOBS_DIR = Utils.join(".gitlet/objects", "blobs");
-        if (!BLOBS_DIR.exists()) {
-            BLOBS_DIR.mkdir();
-        } */
-    /**
-        // File HEAD = //head commit
-        //check if file is already staged
-        Map<String, LinkedList<String>> blobs = new HashMap<>(); //How do I make this HashMap persist?
-        //Store in file? --> but it will be O logN relative to N number of files because I will have to read
-        //entire HashMap object to check the files there.
-        LinkedList<String> file_blobs = blobs.get(file_name);
-        if (file_blobs.getLast() == blobID) {
+        //check if file is the same in commit (do not add it)
+        String head = Utils.readContentsAsString(HEAD); // heads/branch
+        File branch_head = join(GITLET_DIR, head);
+        String currCommitID = Utils.readContentsAsString(branch_head);
+        File BlobID = join(".gitlet/objects/commits" + currCommitID, file_name);
+        String currBlobID = Utils.readContentsAsString(BlobID);
+        if (currBlobID == blobID) {
             return;
         }
-        File blob = Utils.join(BLOBS_DIR, blobID);
 
-        //how do we know what the parent is?
-        Blob blob = new Blob(null, plain);
-        blob.saveBlob();
+        //create ADD_DIR
+        File ADD_DIR = join(STAGING_DIR, "Add");
+        if (!ADD_DIR.exists()) {
+            ADD_DIR.mkdir();
+        }
+
+        //check if it is already in STAGING_DIR
+        File blobStagedAdd = join("Staging/Add", file_name);
+        Utils.restrictedDelete(blobStagedAdd); //deletes blob file if it already exists
+
+        //add it to staging
+        File blobName = join(ADD_DIR, file_name);
+        String text = Utils.readContentsAsString(plain); //Reads the contents of blob and saves as String
+        Utils.writeContents(blobName,text); //creates blob file in Add folder
+
+        //check if it is staged for removal
+        File rm = join("Staging/Rm", file_name);
+        Utils.restrictedDelete(rm);
 
     }
-    */
+
 
     private static void checkBlob() {
         //check if staged
