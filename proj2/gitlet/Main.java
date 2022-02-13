@@ -22,7 +22,7 @@ public class Main {
             case "add":
                 validateNumArgs("add", args, 2);
                 // TODO: handle the `add [filename]` command
-                //Repository.add(args[1]);
+                Repository.add(args[1]);
                 break;
             // TODO: FILL THE REST IN
             case "commit":

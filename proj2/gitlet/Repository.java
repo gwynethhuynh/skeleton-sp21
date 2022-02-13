@@ -3,11 +3,10 @@ package gitlet;
 import jdk.jshell.execution.Util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.lang.reflect.InaccessibleObjectException;
 import java.nio.file.FileSystemAlreadyExistsException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -43,6 +42,10 @@ public class Repository {
 
     public static File STAGING_DIR = Utils.join(GITLET_DIR, "Staging");
 
+    public static File ADD_DIR = Utils.join(STAGING_DIR, "Add");
+
+    public static File RM_DIR = Utils.join(STAGING_DIR, "Rm");
+
 
     /* TODO: fill in the rest of this class. */
 
@@ -63,6 +66,8 @@ public class Repository {
             File OBJECTS_DIR = join(GITLET_DIR, "objects");
             OBJECTS_DIR.mkdir();
             STAGING_DIR.mkdir();
+            ADD_DIR.mkdir();
+            RM_DIR.mkdir();
 
         }
     }
@@ -73,7 +78,7 @@ public class Repository {
         setUpPersistence();
         Utils.writeContents(HEAD, "branches/master");
         //Branch master = new Branch(HEAD); //create a new master branch
-        Commit initial = new Commit("initial commit", null);
+        Commit initial = new Commit("initial commit", null, new ArrayList<>()); //What type of list?
         initial.saveCommit();
         String commitID = initial.getCommitID();
         createBranch("master", commitID);
@@ -85,47 +90,48 @@ public class Repository {
         //check if file exists in the cwd
         File plain = join(CWD, file_name);
         if (!plain.exists()) {
-            return;
-        }
-        //create blobID
-        String blobID = Utils.sha1(Utils.serialize(plain));
-
-        //check if file is the same in commit (do not add it)
-        String head = Utils.readContentsAsString(HEAD); // heads/branch
-        File branch_head = join(GITLET_DIR, head);
-        String currCommitID = Utils.readContentsAsString(branch_head);
-        File BlobID = join(".gitlet/objects/commits" + currCommitID, file_name);
-        String currBlobID = Utils.readContentsAsString(BlobID);
-        if (currBlobID == blobID) {
-            return;
+            throw new InaccessibleObjectException("File does not exist.");
         }
 
-        //create ADD_DIR
-        File ADD_DIR = join(STAGING_DIR, "Add");
-        if (!ADD_DIR.exists()) {
-            ADD_DIR.mkdir();
-        }
+        //create a new blob object
+        Blob addedBlob = new Blob(file_name, plain);
 
-        //check if it is already in STAGING_DIR
-        File blobStagedAdd = join("Staging/Add", file_name);
-        Utils.restrictedDelete(blobStagedAdd); //deletes blob file if it already exists
+        //check if we should add this blob to staging
+        checkBlob(addedBlob);
 
         //add it to staging
-        File blobName = join(ADD_DIR, file_name);
-        String text = Utils.readContentsAsString(plain); //Reads the contents of blob and saves as String
-        Utils.writeContents(blobName,text); //creates blob file in Add folder
+        addToStaging(addedBlob);
 
         //check if it is staged for removal
         File rm = join("Staging/Rm", file_name);
-        Utils.restrictedDelete(rm);
+        if (rm.exists()) {
+            Utils.restrictedDelete(rm);
+        }
+
 
     }
 
+    private static void addToStaging(Blob add) {
+        File blobName = join(ADD_DIR, add.getBlobName());
+        String text = add.getBlobContents(); //Get contents of blob and saves as String
+        Utils.writeContents(blobName,text); //creates blob file in Add folder
+    }
 
-    private static void checkBlob() {
-        //check if staged
-        //check if in current commit already
-
+    private static void checkBlob(Blob addedBlob) {
+        //check if file is the same in commit or if it exists in the commit;
+        String currCommitID = getHEADCommitID();
+        File commitBlob = join(".gitlet/objects/commits" + currCommitID, addedBlob.getBlobName());
+        if(commitBlob.exists()) {
+            String currBlobID = Utils.readContentsAsString(commitBlob);
+            if (currBlobID == addedBlob.getBlobID()) {
+                return;
+            }
+        }
+        //check if it is already in STAGING_DIR
+        File blobStagedAdd = join("Staging/Add", addedBlob.getBlobID());
+        if (blobStagedAdd.exists()) {
+            Utils.restrictedDelete(blobStagedAdd); //deletes blob file if it already exists
+        }
     }
 
     private static void createBlobMap() {
@@ -136,6 +142,17 @@ public class Repository {
 
     public static void commit() {
         //Read from my computer the head commit object and the staging area
+        String parentCommitID = getHEADCommitID();
+
+        //find commit
+        File parent = join(".gitlet/objects/commits/" + parentCommitID, parentCommitID);
+        Utils.readObject(parent,Commit.class);
+
+        //check each txt file in staging area and create a new list.
+        List<String> added_blobs = Utils.plainFilenamesIn(".gitlet/Staging/Add");
+
+        //create  a hashmap of blobs to construct commit
+
         //Clone the HEAD commit
         //Modify its message and timestamp according to the user input
         //Use the staging area in order to modify the files tracked by the new commit
@@ -144,7 +161,10 @@ public class Repository {
     }
 
     public static String getHEADCommitID() {
-        return "";
+        String head = Utils.readContentsAsString(HEAD); // heads/branch
+        File branch_head = join(GITLET_DIR, head);
+        String currCommitID = Utils.readContentsAsString(branch_head);
+        return currCommitID;
     }
 
     public static void createBranch(String branch_name, String commitID) {
@@ -158,4 +178,5 @@ public class Repository {
     public static void updateBranch(String commitID) {
 
     }
+
 }
