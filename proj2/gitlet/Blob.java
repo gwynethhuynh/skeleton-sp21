@@ -9,18 +9,20 @@ import static gitlet.Utils.*;
 
 public class Blob implements Serializable {
     private String blobID;
-    public final File BLOBS_DIR = Utils.join(".gitlet/objects", "blobs");
+    public static final File BLOBS_DIR = Utils.join(".gitlet/objects", "blobs");
     public final String contents;
     private final String name;
 
     public Blob(String name, File blobFile) {
+        if (!BLOBS_DIR.exists()) {
+            BLOBS_DIR.mkdir();
+        }
         this.name = name;
         this.blobID = Utils.sha1(Utils.serialize(blobFile));
         this.contents = Utils.readContentsAsString(blobFile);
     }
 
-    public void commitBlob() {
-        this.blobID = Utils.sha1(Utils.serialize(this));
+    public void saveBlob() {
         File blob = join(BLOBS_DIR, blobID);
         Utils.writeContents(blob, contents);
     }

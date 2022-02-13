@@ -26,7 +26,12 @@ public class Main {
                 break;
             // TODO: FILL THE REST IN
             case "commit":
+                validateNumArgs("commit", args, 2);
+                Repository.commit(args[1]);
                 break;
+            case "rm":
+                validateNumArgs("rm", args, 2);
+                Repository.rm(args[1]);
 
         }
     }

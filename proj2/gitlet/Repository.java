@@ -78,7 +78,8 @@ public class Repository {
         setUpPersistence();
         Utils.writeContents(HEAD, "branches/master");
         //Branch master = new Branch(HEAD); //create a new master branch
-        Commit initial = new Commit("initial commit", null, new ArrayList<>()); //What type of list?
+        List<String> blobs = new ArrayList<>();
+        Commit initial = new Commit("initial commit", "", new ArrayList<>(), new ArrayList<>()); //What type of list?
         initial.saveCommit();
         String commitID = initial.getCommitID();
         createBranch("master", commitID);
@@ -97,69 +98,76 @@ public class Repository {
         Blob addedBlob = new Blob(file_name, plain);
 
         //check if we should add this blob to staging
-        checkBlob(addedBlob);
-
-        //add it to staging
-        addToStaging(addedBlob);
-
-        //check if it is staged for removal
-        File rm = join("Staging/Rm", file_name);
-        if (rm.exists()) {
-            Utils.restrictedDelete(rm);
+        if (checkBlob(addedBlob)) {
+            addToStaging(addedBlob);
+            //check if it is staged for removal
+            File rm = join("Staging/Rm", file_name);
+            if (rm.exists()) {
+                Utils.restrictedDelete(rm);
+            }
         }
-
-
     }
 
+    /** Adds Blob to Add Directory within Staging Directory */
     private static void addToStaging(Blob add) {
         File blobName = join(ADD_DIR, add.getBlobName());
         String text = add.getBlobContents(); //Get contents of blob and saves as String
         Utils.writeContents(blobName,text); //creates blob file in Add folder
     }
 
-    private static void checkBlob(Blob addedBlob) {
+    /** TODO: Fix file system so that there will be blob files in commit folder.
+     * Checks if blob is the same in the HEAD commit.
+     * Checks if blob is already in the Add Directory within the Staging Directory.
+     *
+     * @param addedBlob
+     */
+    private static Boolean checkBlob(Blob addedBlob) {
         //check if file is the same in commit or if it exists in the commit;
         String currCommitID = getHEADCommitID();
-        File commitBlob = join(".gitlet/objects/commits" + currCommitID, addedBlob.getBlobName());
-        if(commitBlob.exists()) {
-            String currBlobID = Utils.readContentsAsString(commitBlob);
+        File commitFile = join(".gitlet/objects/commits", currCommitID);
+        Commit currCommit = Utils.readObject(commitFile, Commit.class);
+        TreeMap<String, String> blobMap = currCommit.getBlobs();
+        if (blobMap.containsKey(addedBlob.getBlobName())) {
+            String currBlobID = blobMap.get(addedBlob.getBlobName());
             if (currBlobID == addedBlob.getBlobID()) {
-                return;
+                return false;
             }
         }
         //check if it is already in STAGING_DIR
         File blobStagedAdd = join("Staging/Add", addedBlob.getBlobID());
         if (blobStagedAdd.exists()) {
             Utils.restrictedDelete(blobStagedAdd); //deletes blob file if it already exists
+            return false;
         }
+        return true;
     }
 
-    private static void createBlobMap() {
-        //need blobMap to persist --> how should I do this? Hash Table?
+    public static void commit(String message) {
+        //If no files have been staged, throw error and abort.
+        List<String> addedBlobs = getStagedAdd();
+        List<String> rmBlobs = getStagedRm();
+        if (addedBlobs.isEmpty() && rmBlobs.isEmpty()) {
+            throw new RuntimeException("No changes added to the commit.");
+        }
 
-    }
-
-
-    public static void commit() {
         //Read from my computer the head commit object and the staging area
         String parentCommitID = getHEADCommitID();
 
-        //find commit
-        File parent = join(".gitlet/objects/commits/" + parentCommitID, parentCommitID);
-        Utils.readObject(parent,Commit.class);
+        //Create new Commit Object.
+        Commit current = new Commit(message, parentCommitID, addedBlobs, rmBlobs);
+        current.saveCommit();
 
-        //check each txt file in staging area and create a new list.
-        List<String> added_blobs = Utils.plainFilenamesIn(".gitlet/Staging/Add");
-
-        //create  a hashmap of blobs to construct commit
-
-        //Clone the HEAD commit
-        //Modify its message and timestamp according to the user input
-        //Use the staging area in order to modify the files tracked by the new commit
-
-        //Write back any new objects made or any objects modified
+        //update HEAD
+        updateHEAD(current.getCommitID());
     }
 
+    public static void rm(String fileName) {
+        //Check if it is staged for addition
+        //Check if it is in the current commit. If it is, stage for removal and remove from CWD
+
+    }
+
+    /** Returns the current Commit ID of the HEAD as a string */
     public static String getHEADCommitID() {
         String head = Utils.readContentsAsString(HEAD); // heads/branch
         File branch_head = join(GITLET_DIR, head);
@@ -167,6 +175,17 @@ public class Repository {
         return currCommitID;
     }
 
+    /** Returns a List of all of the files staged to be added. */
+    private static List<String> getStagedAdd() {
+        return Utils.plainFilenamesIn(".gitlet/Staging/Add");
+    }
+
+    /** Returns a List of all of the files staged to be removed. */
+    private static List<String> getStagedRm() {
+        return Utils.plainFilenamesIn(".gitlet/Staging/Rm");
+    }
+
+    /**Creates a new branch in the commit tree */
     public static void createBranch(String branch_name, String commitID) {
         if(!BRANCHES_DIR.exists()) {
             BRANCHES_DIR.mkdir();
@@ -175,8 +194,12 @@ public class Repository {
         Utils.writeContents(branch, commitID);
     }
 
-    public static void updateBranch(String commitID) {
 
+    /** Updates branch_head file to contain current commit ID */
+    public static void updateHEAD(String commitID) {
+        String head = Utils.readContentsAsString(HEAD); // heads/branch
+        File branch_head = join(GITLET_DIR, head);
+        Utils.writeContents(branch_head, commitID);
     }
 
 }
