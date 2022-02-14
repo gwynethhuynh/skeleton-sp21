@@ -193,7 +193,7 @@ public class Repository {
     }
 
     public static void globalLog() {
-        //displays information about commits every made.
+        //displays information about all commits ever made.
         List<String> commitIDs = Utils.plainFilenamesIn(Commit.COMMITS_DIR);
         for (String commitID : commitIDs) {
             Commit commit = getCommit(commitID);
@@ -208,6 +208,77 @@ public class Repository {
         System.out.println(commit.getMessage());
         System.out.println();
     }
+
+    public static void find(String message) {
+        List<String> commitIDs = Utils.plainFilenamesIn(Commit.COMMITS_DIR);
+        boolean commitExists = false;
+        for (String commitID : commitIDs) {
+            Commit commit = getCommit(commitID);
+            if (commit.getMessage() == message) {
+                System.out.println(commitID);
+                commitExists = true;
+            }
+        }
+        if (!commitExists) {
+            throw new RuntimeException("Found no commit with that message.");
+        }
+    }
+
+    public static void status() {
+        //Display list of branches
+        System.out.println("=== Branches ===");
+        List<String> branches = Utils.plainFilenamesIn(BRANCHES_DIR);
+        String head = Utils.readContentsAsString(HEAD); // heads/branch
+        File branch_head = join(GITLET_DIR, head);
+        for (String branch : branches) {
+            File currBranch = join(BRANCHES_DIR, branch);
+            if (branch_head.equals(currBranch)) {
+                System.out.println("*" + branch);
+            } else {
+                System.out.println(branch);
+            }
+        }
+
+        //Display list of staged Files
+        System.out.println("=== Staged Files ===");
+        List<String> adds = Utils.plainFilenamesIn(ADD_DIR);
+        for (String blob: adds) {
+            System.out.println(blob);
+        }
+        //Display list of removed Files
+        System.out.println("=== Removed Files ===");
+        List<String> rms = Utils.plainFilenamesIn(RM_DIR);
+        for (String blob: rms) {
+            System.out.println(blob);
+        }
+    }
+
+    public static void branch(String branchName) {
+        File branch = join(BRANCHES_DIR, branchName);
+        if (branch.exists()) {
+            throw new RuntimeException("A branch with that name already exists.");
+        } else {
+            String currCommitID = getHEADCommitID();
+            Utils.writeContents(branch, currCommitID);
+        }
+    }
+
+    public static void rmBranch(String branchName) {
+        File branch = join(BRANCHES_DIR, branchName);
+        //If branch does not exist, throw error.
+        if (!branch.exists()) {
+            throw new RuntimeException("A branch with that name does not exist.");
+        }
+        //If the branch you try ot remove is the branch you're currently on, abort.
+        String currCommitID = getHEADCommitID();
+        String branchCommitID = Utils.readContentsAsString(branch);
+        if (currCommitID == branchCommitID) {
+            throw new RuntimeException("Cannot remove the current branch.");
+        }
+        //Delete the branch pointer with the given name.
+        Utils.restrictedDelete(branch);
+    }
+
 
 
 

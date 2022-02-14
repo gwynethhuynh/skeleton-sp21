@@ -40,6 +40,32 @@ public class Main {
             case "global-log":
                 validateNumArgs("global-log", args, 1);
                 Repository.globalLog();
+                break;
+            case "find":
+                validateNumArgs("find", args, 2);
+                Repository.find(args[1]);
+                break;
+            case "status":
+                validateNumArgs("status", args, 1);
+                Repository.status();
+                break;
+            case "checkout":
+                validateNumArgs("checkout", args, 2);
+
+            case "checkout":
+                validateNumArgs("checkout", args, 3);
+
+            case "checkout":
+                validateNumArgs("checkout", args, 4);
+
+            case "branch":
+                validateNumArgs("branch", args, 2);
+                Repository.branch(args[1]);
+                break;
+
+            case "rm-branch":
+                validateNumArgs("rm-branch", args, 2);
+                Repository.rmBranch(args[1]);
         }
     }
 
@@ -62,6 +88,13 @@ public class Main {
      */
     public static void validateNumArgs(String cmd, String[] args, int n) {
         if (args.length != n) {
+            throw new RuntimeException(
+                    String.format("Invalid number of arguments for: %s.", cmd));
+        }
+    }
+
+    public static void validateMaxNumArgs(String cmd, String[] args, int n) {
+        if (args.length > n) {
             throw new RuntimeException(
                     String.format("Invalid number of arguments for: %s.", cmd));
         }
