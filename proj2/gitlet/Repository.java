@@ -186,15 +186,30 @@ public class Repository {
         String currID = getHEADCommitID();
         Commit currCommit = getCommit(currID);
         while (currCommit.getParent() != "") {
-            System.out.println("===");
-            System.out.println("commit " + currID);
-            System.out.println("Date: " + currCommit.getTimestamp().toString());
-            System.out.println(currCommit.getMessage());
-            System.out.println();
+            printLogs(currID, currCommit);
             currID = currCommit.getParent();
             currCommit = getCommit(currID);
         }
     }
+
+    public static void globalLog() {
+        //displays information about commits every made.
+        List<String> commitIDs = Utils.plainFilenamesIn(Commit.COMMITS_DIR);
+        for (String commitID : commitIDs) {
+            Commit commit = getCommit(commitID);
+            printLogs(commitID, commit);
+        }
+    }
+
+    private static void printLogs(String ID, Commit commit) {
+        System.out.println("===");
+        System.out.println("commit " + ID);
+        System.out.println("Date: " + commit.getTimestamp().toString());
+        System.out.println(commit.getMessage());
+        System.out.println();
+    }
+
+
 
     /** Returns the current Commit ID of the HEAD as a string */
     public static String getHEADCommitID() {
