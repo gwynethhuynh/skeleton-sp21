@@ -6,7 +6,8 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.time.Instant;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.*;
 
 import static gitlet.Utils.join;
@@ -30,7 +31,7 @@ public class Commit implements Serializable {
     /** The message of this Commit. */
     private final String message;
     private final String timestamp;
-    private TreeMap<String, String> blobs; // The key is the text file name and the value the blob SHA-1 ID.
+    private HashMap<String, String> blobs; // The key is the text file name and the value the blob SHA-1 ID.
     private final String parent;
     private String commitID;
     static final File COMMITS_DIR = Utils.join(".gitlet/objects", "commits");
@@ -44,29 +45,29 @@ public class Commit implements Serializable {
         }
         this.message = message;
         this.parent = parent;
-        this.commitID = "";
         this.blobs = makeBlobMap(addedBlobs, removedBlobs);
-        if (parent != "") {
-            this.timestamp = Instant.ofEpochSecond(0).toString();
-        } else {
-            long unixTime = Instant.now().getEpochSecond();
-            this.timestamp = Instant.ofEpochSecond(unixTime).toString();
+        Formatter formatter = new Formatter();
+        Date date = new Date();
+        if (parent == "") {
+            date = new GregorianCalendar(1970, Calendar.JANUARY, 1).getTime();
         }
-
+        this.timestamp = formatter.format("Date: %1ta %1tb %1te %1tT %1tY %1tz" ,
+                date, date, date, date, date, date).toString();
+        this.commitID = Utils.sha1(Utils.serialize(this));
     }
 
-    private TreeMap<String, String> makeBlobMap(List<String> addedBlobs, List<String> removedBlobs) {
-        //obtain parent's treemap of blobs
-        File parentFile = join(".gitlet/objects/commits/" , parent);
-        TreeMap<String, String> parentBlobs;
+    private HashMap<String, String> makeBlobMap(List<String> addedBlobs, List<String> removedBlobs) {
+        //obtain parent's hashmap of blobs
+        File parentFile = join(COMMITS_DIR , parent);
+        HashMap<String, String> parentBlobs;
         if (parent == "") {
-            parentBlobs = new TreeMap<>();
+            parentBlobs = new HashMap<>();
         } else {
             Commit parentCommit = Utils.readObject(parentFile, Commit.class);
             parentBlobs = parentCommit.getBlobs();
         }
-        //clone TreeMap.
-        this.blobs = (TreeMap<String, String>) parentBlobs.clone();
+        //clone HashMap.
+        this.blobs = (HashMap<String, String>) parentBlobs.clone();
 
         for (String blobName : addedBlobs) {
             File blob = join(".gitlet/Staging/Add", blobName);
@@ -89,7 +90,7 @@ public class Commit implements Serializable {
 
         }
         for (String rmBlob : removedBlobs) {
-            //remove file from Treemap
+            //remove file from HashMap
             blobs.remove(rmBlob);
             //remove file from Staging Area
             File removed_blob = join(".gitlet/Staging/Rm", rmBlob);
@@ -118,12 +119,16 @@ public class Commit implements Serializable {
 
     public void saveCommit(){
         //save Commit Object
-        this.commitID = Utils.sha1(Utils.serialize(this));
         File commit = join(COMMITS_DIR, commitID);
         Utils.writeObject(commit, this);
     }
 
-    public TreeMap<String, String> getBlobs() {
+    public HashMap<String, String> getBlobs() {
         return this.blobs;
+    }
+
+    public Boolean containsFile(String file_name) {
+        HashMap<String, String> blobs = getBlobs();
+        return blobs.containsKey(file_name);
     }
 }

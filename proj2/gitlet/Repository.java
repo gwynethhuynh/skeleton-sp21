@@ -78,7 +78,6 @@ public class Repository {
         setUpPersistence();
         Utils.writeContents(HEAD, "branches/master");
         //Branch master = new Branch(HEAD); //create a new master branch
-        List<String> blobs = new ArrayList<>();
         Commit initial = new Commit("initial commit", "", new ArrayList<>(), new ArrayList<>()); //What type of list?
         initial.saveCommit();
         String commitID = initial.getCommitID();
@@ -101,7 +100,7 @@ public class Repository {
         if (checkBlob(addedBlob)) {
             addToStaging(addedBlob);
             //check if it is staged for removal
-            File rm = join("Staging/Rm", file_name);
+            File rm = join(RM_DIR, file_name);
             if (rm.exists()) {
                 Utils.restrictedDelete(rm);
             }
@@ -115,7 +114,7 @@ public class Repository {
         Utils.writeContents(blobName,text); //creates blob file in Add folder
     }
 
-    /** TODO: Fix file system so that there will be blob files in commit folder.
+    /** TODO: Fix so that addedBlob will be removed if I add the old version (matches commit)
      * Checks if blob is the same in the HEAD commit.
      * Checks if blob is already in the Add Directory within the Staging Directory.
      *
@@ -123,26 +122,25 @@ public class Repository {
      */
     private static Boolean checkBlob(Blob addedBlob) {
         //check if file is the same in commit or if it exists in the commit;
-        String currCommitID = getHEADCommitID();
-        File commitFile = join(".gitlet/objects/commits", currCommitID);
-        Commit currCommit = Utils.readObject(commitFile, Commit.class);
-        TreeMap<String, String> blobMap = currCommit.getBlobs();
+        Commit currCommit = getHEADCommit();
+        HashMap<String, String> blobMap = currCommit.getBlobs();
+        File blobStagedAdd = join(ADD_DIR, addedBlob.getBlobName());
         if (blobMap.containsKey(addedBlob.getBlobName())) {
             String currBlobID = blobMap.get(addedBlob.getBlobName());
             if (currBlobID == addedBlob.getBlobID()) {
+                if (blobStagedAdd.exists()) {
+                    Utils.restrictedDelete(blobStagedAdd);
+                }
                 return false;
             }
-        }
-        //check if it is already in STAGING_DIR
-        File blobStagedAdd = join("Staging/Add", addedBlob.getBlobID());
-        if (blobStagedAdd.exists()) {
-            Utils.restrictedDelete(blobStagedAdd); //deletes blob file if it already exists
-            return false;
         }
         return true;
     }
 
     public static void commit(String message) {
+        if (message == "" || message == null) {
+            throw new RuntimeException("Please enter a commit message");
+        }
         //If no files have been staged, throw error and abort.
         List<String> addedBlobs = getStagedAdd();
         List<String> rmBlobs = getStagedRm();
@@ -163,8 +161,39 @@ public class Repository {
 
     public static void rm(String fileName) {
         //Check if it is staged for addition
-        //Check if it is in the current commit. If it is, stage for removal and remove from CWD
+        File addedBlob = join(ADD_DIR, fileName);
+        Commit currCommit = getHEADCommit();
+        if (addedBlob.exists()) {
+            Utils.restrictedDelete(addedBlob);
 
+        //Check if it is in the current commit. If it is, stage for removal and remove from CWD
+        } else if (currCommit.containsFile(fileName)) {
+            File removedBlob = join(RM_DIR, fileName);
+            Utils.writeContents(removedBlob, "");
+            File blob = join(CWD, fileName);
+            if (blob.exists()) {
+                Utils.restrictedDeleteCWD(blob);
+            }
+        } else {
+            throw new RuntimeException("No reason to remove the file.");
+        }
+
+    }
+
+    public static void log() {
+        //display information about each commit backwards along commit tree until initial commit
+        //follow first parent commits and ignore 2nd parents
+        String currID = getHEADCommitID();
+        Commit currCommit = getCommit(currID);
+        while (currCommit.getParent() != "") {
+            System.out.println("===");
+            System.out.println("commit " + currID);
+            System.out.println("Date: " + currCommit.getTimestamp().toString());
+            System.out.println(currCommit.getMessage());
+            System.out.println();
+            currID = currCommit.getParent();
+            currCommit = getCommit(currID);
+        }
     }
 
     /** Returns the current Commit ID of the HEAD as a string */
@@ -173,6 +202,20 @@ public class Repository {
         File branch_head = join(GITLET_DIR, head);
         String currCommitID = Utils.readContentsAsString(branch_head);
         return currCommitID;
+    }
+
+    /** Returns the current Commit Object of the Head */
+    public static Commit getHEADCommit() {
+        String commitID = getHEADCommitID();
+        File commit = join(Commit.COMMITS_DIR, commitID);
+        Commit currCommit = Utils.readObject(commit, Commit.class);
+        return currCommit;
+    }
+
+    public static Commit getCommit(String commitID) {
+        File commit = join(Commit.COMMITS_DIR, commitID);
+        Commit currCommit = Utils.readObject(commit, Commit.class);
+        return currCommit;
     }
 
     /** Returns a List of all of the files staged to be added. */

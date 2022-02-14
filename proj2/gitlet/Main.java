@@ -32,7 +32,10 @@ public class Main {
             case "rm":
                 validateNumArgs("rm", args, 2);
                 Repository.rm(args[1]);
-
+                break;
+            case "log":
+                validateNumArgs("log", args, 1);
+                Repository.log();
         }
     }
 

@@ -74,7 +74,19 @@ class Utils {
         File grandparent = parent.getParentFile(); //Staging directory
         File greatG = grandparent.getParentFile(); //.gitlet directory
         File GGG = greatG.getParentFile(); //CWD
-        if (!(new File(GGG, ".gitlet")).isDirectory()) {
+        if (!(new File(GGG, ".gitlet")).isDirectory() && !(new File(parent, ".gitlet")).isDirectory()) {
+            throw new IllegalArgumentException("not .gitlet working directory");
+        }
+        if (!file.isDirectory()) {
+            return file.delete();
+        } else {
+            return false;
+        }
+    }
+
+    static boolean restrictedDeleteCWD(File file) {
+        File parent = file.getParentFile(); //CWD
+        if (!(new File(parent, ".gitlet")).isDirectory()) {
             throw new IllegalArgumentException("not .gitlet working directory");
         }
         if (!file.isDirectory()) {
