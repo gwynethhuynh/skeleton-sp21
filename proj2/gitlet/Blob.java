@@ -20,12 +20,11 @@ public class Blob implements Serializable {
         }
         this.name = name;
         this.blobID = "";
-        // this.blobID = Utils.sha1(Utils.serialize(blobFile));
         this.contents = Utils.readContentsAsString(blobFile);
+        this.blobID = Utils.sha1(Utils.serialize(this));
     }
 
     public void saveBlob() {
-        this.blobID = Utils.sha1(Utils.serialize(this));
         File blob = join(BLOBS_DIR, blobID);
         Utils.writeContents(blob, contents);
     }

@@ -96,6 +96,20 @@ class Utils {
         }
     }
 
+    static boolean restrictedDeleteBranch(File file) {
+        File parent = file.getParentFile(); //branches directory
+        File grandparent = parent.getParentFile(); //.gitlet directory
+        File greatG = grandparent.getParentFile(); //CWD
+        if (!(new File(greatG, ".gitlet")).isDirectory()) {
+            throw new IllegalArgumentException("not .gitlet working directory");
+        }
+        if (!file.isDirectory()) {
+            return file.delete();
+        } else {
+            return false;
+        }
+    }
+
     /** Deletes the file named FILE if it exists and is not a directory.
      *  Returns true if FILE was deleted, and false otherwise.  Refuses
      *  to delete FILE and throws IllegalArgumentException unless the

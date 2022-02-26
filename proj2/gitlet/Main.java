@@ -49,14 +49,23 @@ public class Main {
                 validateNumArgs("status", args, 1);
                 Repository.status();
                 break;
-            case "checkout":
-                validateNumArgs("checkout", args, 2);
+            //case "checkout":
+                //validateNumArgs("checkout", args, 2);
+
+            //case "checkout":
+                //validateNumArgs("checkout", args, 3);
 
             case "checkout":
-                validateNumArgs("checkout", args, 3);
-
-            case "checkout":
-                validateNumArgs("checkout", args, 4);
+                if (args.length == 2) {
+                    Repository.checkoutBranch(args[1]);
+                } else if (args.length == 3) {
+                    Repository.checkoutFileHead(args[2]);
+                } else if (args.length == 4) {
+                    Repository.checkoutFileCommitID(args[1], args[3]);
+                } else {
+                    throw new RuntimeException(
+                            String.format("Invalid number of arguments for: %s.", "checkout"));
+                }
 
             case "branch":
                 validateNumArgs("branch", args, 2);
@@ -66,6 +75,11 @@ public class Main {
             case "rm-branch":
                 validateNumArgs("rm-branch", args, 2);
                 Repository.rmBranch(args[1]);
+                break;
+
+            case "reset":
+                validateNumArgs("reset", args, 2);
+                Repository.reset(args[1]);
         }
     }
 
@@ -88,13 +102,6 @@ public class Main {
      */
     public static void validateNumArgs(String cmd, String[] args, int n) {
         if (args.length != n) {
-            throw new RuntimeException(
-                    String.format("Invalid number of arguments for: %s.", cmd));
-        }
-    }
-
-    public static void validateMaxNumArgs(String cmd, String[] args, int n) {
-        if (args.length > n) {
             throw new RuntimeException(
                     String.format("Invalid number of arguments for: %s.", cmd));
         }
