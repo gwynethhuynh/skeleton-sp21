@@ -19,9 +19,8 @@ public class Blob implements Serializable {
             BLOBS_DIR.mkdir();
         }
         this.name = name;
-        this.blobID = "";
         this.contents = Utils.readContentsAsString(blobFile);
-        this.blobID = Utils.sha1(Utils.serialize(this));
+        this.blobID = Utils.sha1(Utils.serialize(this.contents));
     }
 
     public void saveBlob() {

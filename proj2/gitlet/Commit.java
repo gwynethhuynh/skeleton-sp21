@@ -35,25 +35,32 @@ public class Commit implements Serializable {
     private final String parent;
     private String commitID;
     static final File COMMITS_DIR = Utils.join(".gitlet/objects", "commits");
+    private final String parent2;
 
 
-    /* TODO: fill in the rest of this class. */
 
-    public Commit(String message, String parent, List<String> addedBlobs, List<String> removedBlobs) {
+
+    public Commit(String message, String parent, String parent2, List<String> addedBlobs, List<String> removedBlobs) {
         if (!COMMITS_DIR.exists()) {
             COMMITS_DIR.mkdir();
         }
         this.message = message;
         this.parent = parent;
+        this.parent2 = parent2;
         this.blobs = makeBlobMap(addedBlobs, removedBlobs);
+        this.timestamp = createTimestamp(parent);
+        this.commitID = Utils.sha1(Utils.serialize(this));
+    }
+
+    private String createTimestamp(String parent) {
         Formatter formatter = new Formatter();
         Date date = new Date();
         if (parent == "") {
             date = new GregorianCalendar(1970, Calendar.JANUARY, 1).getTime();
         }
-        this.timestamp = formatter.format("Date: %1ta %1tb %1te %1tT %1tY %1tz" ,
+        String time = formatter.format("Date: %1ta %1tb %1te %1tT %1tY %1tz" ,
                 date, date, date, date, date, date).toString();
-        this.commitID = Utils.sha1(Utils.serialize(this));
+        return time;
     }
 
     private HashMap<String, String> makeBlobMap(List<String> addedBlobs, List<String> removedBlobs) {
@@ -70,8 +77,9 @@ public class Commit implements Serializable {
         this.blobs = (HashMap<String, String>) parentBlobs.clone();
 
         for (String blobName : addedBlobs) {
-            File blob = join(".gitlet/Staging/Add", blobName);
-            String addedBlobID = Utils.sha1(Utils.serialize(blob));
+            File blob = join(".gitlet/staging/add", blobName);
+            String blobContents = Utils.readContentsAsString(blob);
+            String addedBlobID = Utils.sha1(Utils.serialize(blobContents));
             if (!blobs.containsKey(blobName)) {
                 blobs.put(blobName, addedBlobID);
             } else {
@@ -93,7 +101,7 @@ public class Commit implements Serializable {
             //remove file from HashMap
             blobs.remove(rmBlob);
             //remove file from Staging Area
-            File removed_blob = join(".gitlet/Staging/Rm", rmBlob);
+            File removed_blob = join(".gitlet/staging/rm", rmBlob);
             Utils.restrictedDelete(removed_blob);
         }
 
@@ -115,6 +123,10 @@ public class Commit implements Serializable {
 
     public String getParent() {
         return this.parent;
+    }
+
+    public String getParent2() {
+        return this.parent2;
     }
 
     public void saveCommit(){

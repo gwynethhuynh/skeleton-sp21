@@ -49,11 +49,6 @@ public class Main {
                 validateNumArgs("status", args, 1);
                 Repository.status();
                 break;
-            //case "checkout":
-                //validateNumArgs("checkout", args, 2);
-
-            //case "checkout":
-                //validateNumArgs("checkout", args, 3);
 
             case "checkout":
                 if (args.length == 2) {
@@ -66,6 +61,7 @@ public class Main {
                     throw new RuntimeException(
                             String.format("Invalid number of arguments for: %s.", "checkout"));
                 }
+                break;
 
             case "branch":
                 validateNumArgs("branch", args, 2);
@@ -80,6 +76,12 @@ public class Main {
             case "reset":
                 validateNumArgs("reset", args, 2);
                 Repository.reset(args[1]);
+                break;
+
+            case "merge" :
+                validateNumArgs("merge", args, 2);
+                Repository.merge(args[1]);
+                break;
         }
     }
 
