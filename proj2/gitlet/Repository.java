@@ -470,7 +470,7 @@ public class Repository {
         Commit other = getCommit(otherID);
 
         //find common ancestor (path from both branch heads)
-        String commitMessage = String.format("Merged %s with %s", other, head);
+        String commitMessage = String.format("Merged %s with %s", branchName, getHeadBranchName());
         Commit commonAncestor = getCommonAncestor(head, other);
         if (commonAncestor.equals(head)) {
             System.out.println("Current branch fast-forwarded.");
@@ -543,13 +543,13 @@ public class Repository {
     private static Commit getCommonAncestor(Commit head, Commit other) {
         HashSet<String> headCommitIDs = new HashSet<>();
         headCommitIDs.add(head.getCommitID());
-        while (head.getParent() != null) {
+        while (head.getParent() != "") {
             String parentID = head.getParent();
             headCommitIDs.add(parentID);
             System.out.println(parentID);
             head = getCommit(parentID);
         }
-        while (other.getParent() != null) {
+        while (other.getParent() != "") {
             String otherParentID = other.getParent();
             System.out.println(otherParentID);
             Commit otherParent = getCommit(otherParentID);
@@ -632,6 +632,13 @@ public class Repository {
         String head = Utils.readContentsAsString(HEAD); // heads/branch
         File branch_head = join(GITLET_DIR, head);
         Utils.writeContents(branch_head, commitID);
+    }
+
+    public static String getHeadBranchName() {
+        String head = Utils.readContentsAsString(HEAD);
+        String[] parts = head.split("/");
+        String headName = parts[1]; // master
+        return headName;
     }
 
     /** Returns contents of Blob */
